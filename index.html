@@ -1,7 +1,6 @@
 <!doctype html>
 <html>
-<head>
-    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+<head>    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
@@ -87,27 +86,28 @@
         <a-entity camera></a-entity>
     </a-scene>
     <div class="ui">
-        <img id="snap">
-        <a href="" id="take-photo" title="Take Photo"><img src="assets/camera.png" alt="Take Photo"></a>
+        <a href="#" id="take-photo" title="Take Photo"><img src="assets/camera.png" alt="Take Photo"></a>
     </div>
 </body>
 
 <script>
-    var image = document.querySelector('#snap');
     var take_photo_btn = document.querySelector('#take-photo');
+    var snapshotCounter = 1;  // 数字カウンター
 
-    //スナップショットボタン
+    // スナップショットボタン
     take_photo_btn.addEventListener("click", function (e) {
         e.preventDefault();
         var video = document.querySelector('video');
         var snap = takeSnapshot(video);
 
-        //スナップショット表示.
-        image.setAttribute('src', snap);
-        image.classList.add('visible');
+        // 自動保存処理
+        downloadSnapshot(snap);
+        
+        // カメラ状態に戻す（UI初期化）
+        resetCamera();
+    });
 
-
-    //スナップショットを撮る
+    // スナップショットを撮る
     function takeSnapshot(video) {
         var resizedCanvas = document.createElement("canvas");
         var resizedContext = resizedCanvas.getContext("2d");
@@ -116,13 +116,10 @@
         var aScene = document.querySelector("a-scene").components.screenshot.getCanvas("perspective");
 
         if (width && height) {
-            //videoのサイズをキャンバスにセット
             resizedCanvas.width = width;
             resizedCanvas.height = height;
-            //キャンバスにvideoをコピー
             resizedContext.drawImage(video, 0, 0, width, height);
 
-            //カメラの画角でar側の縮小処理を変える
             if (width > height) {
                 // 横長（PC)
                 resizedContext.drawImage(aScene, 0, 0, width, height);
@@ -133,8 +130,39 @@
                 var marginLeft = (width - scaledWidth) / 2;
                 resizedContext.drawImage(aScene, marginLeft, 0, scaledWidth, height);
             }
+
             return resizedCanvas.toDataURL('image/png');
         }
     }
+
+    // スナップショットを自動的にダウンロード
+    function downloadSnapshot(dataUrl) {
+        var a = document.createElement('a');
+        a.href = dataUrl;
+
+        // 現在の日付と時刻を取得
+        var now = new Date();
+        var year = now.getFullYear();
+        var month = ('0' + (now.getMonth() + 1)).slice(-2);
+        var day = ('0' + now.getDate()).slice(-2);
+        var hours = ('0' + now.getHours()).slice(-2);
+        var minutes = ('0' + now.getMinutes()).slice(-2);
+        var seconds = ('0' + now.getSeconds()).slice(-2);
+
+        // ファイル名を「que-tah+年月日+時刻+数字」の形式で作成
+        var filename = `que-tah_${year}${month}${day}_${hours}${minutes}${seconds}_${snapshotCounter}.png`;
+
+        a.download = filename;  // 生成されたファイル名を設定
+        snapshotCounter++;  // カウンターをインクリメント
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    // カメラ状態に戻す（UIの初期化）
+    function resetCamera() {
+        var image = document.querySelector('#snap');
+        image.setAttribute('src', "");  // スナップショットをクリア
+        image.classList.remove('visible');  // スナップショットを非表示
+    }
 </script>
-</html>
