@@ -48,10 +48,11 @@
     <a-scene
         vr-mode-ui="enabled: false;"
         loading-screen="enabled: false;"
-        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: true;"
+        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
         id="scene"
         embedded
         gesture-detector
+        renderer="antialias: true; alpha: true; logarithmicDepthBuffer: true;"
         screenshot="width: 1920; height: 1080;">
         <a-marker
             id="markerA"
@@ -81,37 +82,31 @@
     var takePhotoBtn = document.querySelector('#take-photo');
     var snapshotCounter = 1;
 
-    takePhotoBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        var video = document.querySelector('video');
-        var snap = takeSnapshot(video);
-        downloadSnapshot(snap);
-        resetCamera();
-    });
-
-    function takeSnapshot(video) {
-        var canvas = document.createElement("canvas");
-        var context = canvas.getContext("2d");
-        var width = video.videoWidth;
-        var height = video.videoHeight;
-        var sceneCanvas = document.querySelector("a-scene").components.screenshot.getCanvas("perspective");
-
-        if (width && height) {
-            canvas.width = width;
-            canvas.height = height;
-            context.drawImage(video, 0, 0, width, height);
-            context.drawImage(sceneCanvas, 0, 0, width, height);
-            return canvas.toDataURL('image/png');
+    // スナップショット取得処理
+    function takeSnapshot() {
+        var scene = document.querySelector("a-scene");
+        if (!scene || !scene.components.screenshot) {
+            alert("カメラの準備ができていません。少し待ってから試してください。");
+            return;
         }
+
+        // スクリーンショットを取得
+        var sceneCanvas = scene.components.screenshot.getCanvas("perspective");
+        if (!sceneCanvas) {
+            alert("スナップショットの取得に失敗しました。");
+            return;
+        }
+
+        var dataUrl = sceneCanvas.toDataURL('image/png');
+        downloadSnapshot(dataUrl);
     }
 
+    // スナップショットをダウンロード
     function downloadSnapshot(dataUrl) {
         var a = document.createElement('a');
         a.href = dataUrl;
         var now = new Date();
-        var filename = `que-tah_${now.getFullYear()}${('0' + (now.getMonth() + 1)).slice(-2)}${('0' + now.getDate()).slice(-2)}_` +
-                        `${('0' + now.getHours()).slice(-2)}${('0' + now.getMinutes()).slice(-2)}${('0' + now.getSeconds()).slice(-2)}_` +
-                        `${snapshotCounter}.png`;
+        var filename = `snapshot_${now.toISOString().replace(/[-:]/g, "").split(".")[0]}_${snapshotCounter}.png`;
         a.download = filename;
         snapshotCounter++;
         document.body.appendChild(a);
@@ -119,10 +114,26 @@
         document.body.removeChild(a);
     }
 
-    function resetCamera() {
-        var image = document.querySelector('#snap');
-        image.setAttribute('src', "");
-        image.classList.remove('visible');
+    // ボタン押下でスナップショットを撮る
+    takePhotoBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        setTimeout(() => {
+            takeSnapshot();
+        }, 500); // 500ms 待機してから撮影
+    });
+
+    // ページ読み込み時のカメラアクセスチェック
+    async function checkCameraAccess() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+            stream.getTracks().forEach(track => track.stop());
+            console.log("カメラアクセス成功");
+        } catch (err) {
+            alert("カメラにアクセスできません。設定を確認してください。");
+            console.error("カメラアクセスエラー:", err);
+        }
     }
+
+    window.onload = checkCameraAccess;
 </script>
 </html>
