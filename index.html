@@ -48,11 +48,10 @@
     <a-scene
         vr-mode-ui="enabled: false;"
         loading-screen="enabled: false;"
-        arjs="trackingMethod: best; sourceType: environment; debugUIEnabled: true;"
+        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: true;"
         id="scene"
         embedded
         gesture-detector
-        renderer="antialias: true; alpha: true; logarithmicDepthBuffer: true;"
         screenshot="width: 1920; height: 1080;">
         <a-marker
             id="markerA"
@@ -82,28 +81,12 @@
     var takePhotoBtn = document.querySelector('#take-photo');
     var snapshotCounter = 1;
 
-    // カメラのアクセスをチェック
-    async function checkCameraAccess() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            stream.getTracks().forEach(track => track.stop());
-            console.log("カメラアクセス成功");
-        } catch (err) {
-            alert("カメラにアクセスできません。設定を確認してください。");
-            console.error("カメラアクセスエラー:", err);
-        }
-    }
-
     takePhotoBtn.addEventListener("click", function (e) {
         e.preventDefault();
-        requestAnimationFrame(() => {
-            var video = document.querySelector('video');
-            var snap = takeSnapshot(video);
-            if (snap) {
-                downloadSnapshot(snap);
-                resetCamera();
-            }
-        });
+        var video = document.querySelector('video');
+        var snap = takeSnapshot(video);
+        downloadSnapshot(snap);
+        resetCamera();
     });
 
     function takeSnapshot(video) {
@@ -117,19 +100,7 @@
             canvas.width = width;
             canvas.height = height;
             context.drawImage(video, 0, 0, width, height);
-
-            // スマホの向きによって描画領域を調整
-            if (window.innerWidth < window.innerHeight) { 
-                // 縦画面
-                context.drawImage(sceneCanvas, 0, 0, width, height);
-            } else { 
-                // 横画面
-                var scale = width / height;
-                var scaledHeight = width * scale;
-                var marginTop = (height - scaledHeight) / 2;
-                context.drawImage(sceneCanvas, 0, marginTop, width, scaledHeight);
-            }
-
+            context.drawImage(sceneCanvas, 0, 0, width, height);
             return canvas.toDataURL('image/png');
         }
     }
@@ -153,8 +124,5 @@
         image.setAttribute('src', "");
         image.classList.remove('visible');
     }
-
-    // ページ読み込み時にカメラアクセスチェック
-    window.onload = checkCameraAccess;
 </script>
 </html>
