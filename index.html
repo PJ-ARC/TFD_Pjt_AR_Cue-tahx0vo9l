@@ -101,52 +101,42 @@
         // スナップショットボタン
         take_photo_btn.addEventListener("click", function (e) {
             e.preventDefault();
+            var video = document.querySelector('video');
+            var snap = takeSnapshot(video);
 
-            // アウトカメラから画像を取得
-            captureCameraImage().then(function(imageDataUrl) {
-                // 自動保存処理
-                downloadSnapshot(imageDataUrl);
-                
-                // カメラ状態に戻す（UI初期化）
-                resetCamera();
-            });
+            // 自動保存処理
+            downloadSnapshot(snap);
+            
+            // カメラ状態に戻す（UI初期化）
+            resetCamera();
         });
 
-        // アウトカメラから画像を取得
-        function captureCameraImage() {
-            return new Promise(function(resolve, reject) {
-                // アウトカメラ（背面カメラ）を選択
-                navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "environment" }  // 背面カメラを指定
-                })
-                .then(function(stream) {
-                    var video = document.createElement('video');
-                    video.srcObject = stream;
-                    video.play();
+        // スナップショットを撮る
+        function takeSnapshot(video) {
+            var resizedCanvas = document.createElement("canvas");
+            var resizedContext = resizedCanvas.getContext("2d");
+            var width = video.videoWidth;
+            var height = video.videoHeight;
+            var aScene = document.querySelector("a-scene").components.screenshot.getCanvas("perspective");
 
-                    // カメラが準備できたら画像を取得
-                    video.onloadeddata = function() {
-                        var canvas = document.createElement('canvas');
-                        var context = canvas.getContext('2d');
+            if (width && height) {
+                resizedCanvas.width = width;
+                resizedCanvas.height = height;
+                resizedContext.drawImage(video, 0, 0, width, height);
 
-                        // 動画のサイズに合わせてキャンバスを設定
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
+                if (width > height) {
+                    // 横長（PC)
+                    resizedContext.drawImage(aScene, 0, 0, width, height);
+                } else {
+                    // 縦長（スマホ）
+                    var scale = height / width;
+                    var scaledWidth = height * scale;
+                    var marginLeft = (width - scaledWidth) / 2;
+                    resizedContext.drawImage(aScene, marginLeft, 0, scaledWidth, height);
+                }
 
-                        // キャンバスにカメラの映像を描画
-                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                        // ストリームを停止してクリーンアップ
-                        stream.getTracks().forEach(track => track.stop());
-
-                        // 画像をBase64形式で返す
-                        resolve(canvas.toDataURL('image/png'));
-                    };
-                })
-                .catch(function(error) {
-                    reject(error);
-                });
-            });
+                return resizedCanvas.toDataURL('image/png');
+            }
         }
 
         // スナップショットを自動的にダウンロード
