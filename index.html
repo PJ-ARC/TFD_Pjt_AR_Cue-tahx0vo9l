@@ -52,10 +52,6 @@
         #snap.visible {
             visibility: visible;
         }
-        /* 不要なUIを非表示にする */
-        #arjsDebugUIContainer, .arjs-loader {
-            display: none !important;
-        }
     </style>
 </head>
 
@@ -63,7 +59,7 @@
     <a-scene
         vr-mode-ui="enabled: false;"
         loading-screen="enabled: false;"
-        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+        arjs="trackingMethod: best; sourceType: environment; videoTexture: true; debugUIEnabled: false;"
         renderer="antialias: true; alpha: true;"
         id="scene"
         embedded
@@ -77,6 +73,7 @@
             raycaster="objects: .clickable"
             emitevents="true"
             cursor="fuse: false; rayOrigin: mouse;"
+            id="markerA"
         >
             <a-image
                 src="assets/asset.png"
@@ -114,7 +111,6 @@
         var resizedContext = resizedCanvas.getContext("2d");
         var width = video.videoWidth;
         var height = video.videoHeight;
-        var aspectRatio = width / height;
         var aScene = document.querySelector("a-scene").components.screenshot.getCanvas("perspective");
 
         if (width && height) {
@@ -142,5 +138,12 @@
         image.setAttribute('src', "");
         image.classList.remove('visible');
     }
+
+    // 不要なテキストを非表示
+    document.addEventListener("DOMContentLoaded", function() {
+        var style = document.createElement('style');
+        style.innerHTML = '[data-aframe-inspector] { display: none !important; }';
+        document.head.appendChild(style);
+    });
 </script>
 </html>
