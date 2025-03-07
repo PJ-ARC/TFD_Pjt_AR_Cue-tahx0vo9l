@@ -122,28 +122,22 @@
         function takeSnapshot(video) {
             var resizedCanvas = document.createElement("canvas");
             var resizedContext = resizedCanvas.getContext("2d");
-            var width = video.videoWidth;
-            var height = video.videoHeight;
+
+            // a-sceneのサイズを取得
+            var sceneWidth = window.innerWidth;
+            var sceneHeight = window.innerHeight;
+
+            resizedCanvas.width = sceneWidth;
+            resizedCanvas.height = sceneHeight;
+
+            // videoの内容をcanvasに描画
+            resizedContext.drawImage(video, 0, 0, sceneWidth, sceneHeight);
+
+            // ARシーンを描画
             var aScene = document.querySelector("a-scene").components.screenshot.getCanvas("perspective");
+            resizedContext.drawImage(aScene, 0, 0, sceneWidth, sceneHeight);
 
-            if (width && height) {
-                resizedCanvas.width = width;
-                resizedCanvas.height = height;
-                resizedContext.drawImage(video, 0, 0, width, height);
-
-                if (width > height) {
-                    // 横長（PC)
-                    resizedContext.drawImage(aScene, 0, 0, width, height);
-                } else {
-                    // 縦長（スマホ）
-                    var scale = height / width;
-                    var scaledWidth = height * scale;
-                    var marginLeft = (width - scaledWidth) / 2;
-                    resizedContext.drawImage(aScene, marginLeft, 0, scaledWidth, height);
-                }
-
-                return resizedCanvas.toDataURL('image/png');
-            }
+            return resizedCanvas.toDataURL('image/png');
         }
 
         // スナップショットを自動的にダウンロード
