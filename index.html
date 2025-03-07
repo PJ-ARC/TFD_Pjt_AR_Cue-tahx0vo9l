@@ -112,7 +112,19 @@
             resizedCanvas.width = width;
             resizedCanvas.height = height;
             resizedContext.drawImage(video, 0, 0, width, height);
-            resizedContext.drawImage(aScene, 0, 0, width, height);
+            
+            var sceneWidth = aScene.width;
+            var sceneHeight = aScene.height;
+            var aspectRatio = sceneWidth / sceneHeight;
+            
+            if (width / height > aspectRatio) {
+                var newHeight = width / aspectRatio;
+                resizedContext.drawImage(aScene, 0, (height - newHeight) / 2, width, newHeight);
+            } else {
+                var newWidth = height * aspectRatio;
+                resizedContext.drawImage(aScene, (width - newWidth) / 2, 0, newWidth, height);
+            }
+            
             return resizedCanvas.toDataURL('image/png');
         }
     }
