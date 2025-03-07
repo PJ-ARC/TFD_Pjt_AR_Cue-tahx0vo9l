@@ -1,8 +1,8 @@
 <!doctype html>
 <html>
-<head>    
+<head>
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ar.js@latest/aframe/build/aframe-ar.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
     <style>
@@ -12,23 +12,34 @@
             bottom: 0;
             left: 0;
             width: 100%;
+            height: auto;
+            margin: 0;
+            padding: 10px 15px 30px;
             text-align: center;
+            box-sizing: border-box;
         }
-        .ui a {
-            display: inline-block;
+        .ui button {
             width: 60px;
             height: 60px;
             background-color: #ffffff;
+            color: #303030;
+            margin: 10px 3px;
             border-radius: 50%;
+            border: none;
             position: relative;
         }
-        .ui a img {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        .ui button img {
             width: 30px;
             height: 30px;
+        }
+        #snap {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            visibility: hidden;
+        }
+        #snap.visible {
+            visibility: visible;
         }
     </style>
 </head>
@@ -37,63 +48,81 @@
     <a-scene
         vr-mode-ui="enabled: false;"
         loading-screen="enabled: false;"
-        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: true;"
         id="scene"
         embedded
         gesture-detector
-    >
+        screenshot="width: 1920; height: 1080;">
         <a-marker
+            id="markerA"
             type="pattern"
             preset="custom"
             url="assets/marker.patt"
             raycaster="objects: .clickable"
             emitevents="true"
-            cursor="fuse: false; rayOrigin: mouse;"
-        >
+            cursor="fuse: false; rayOrigin: mouse;">
             <a-image
                 src="assets/asset.png"
                 scale="3 3 1"
                 class="clickable"
                 rotation="-90 0 0"
                 position="1 0 0"
-                gesture-handler
-            ></a-image>
+                gesture-handler>
+            </a-image>
         </a-marker>
         <a-entity camera></a-entity>
     </a-scene>
     <div class="ui">
-        <a href="#" id="take-photo" title="Take Photo"><img src="assets/camera.png" alt="Take Photo"></a>
+        <button id="take-photo" title="Take Photo"><img src="assets/camera.png" alt="Take Photo"></button>
     </div>
 </body>
 
 <script>
-    document.querySelector('#take-photo').addEventListener("click", function (e) {
+    var takePhotoBtn = document.querySelector('#take-photo');
+    var snapshotCounter = 1;
+
+    takePhotoBtn.addEventListener("click", function (e) {
         e.preventDefault();
         var video = document.querySelector('video');
         var snap = takeSnapshot(video);
         downloadSnapshot(snap);
+        resetCamera();
     });
 
     function takeSnapshot(video) {
         var canvas = document.createElement("canvas");
-        var ctx = canvas.getContext("2d");
+        var context = canvas.getContext("2d");
         var width = video.videoWidth;
         var height = video.videoHeight;
-        var aspectRatio = width / height;
-        
-        canvas.width = width;
-        canvas.height = height;
-        ctx.drawImage(video, 0, 0, width, height);
-        return canvas.toDataURL('image/png');
+        var sceneCanvas = document.querySelector("a-scene").components.screenshot.getCanvas("perspective");
+
+        if (width && height) {
+            canvas.width = width;
+            canvas.height = height;
+            context.drawImage(video, 0, 0, width, height);
+            context.drawImage(sceneCanvas, 0, 0, width, height);
+            return canvas.toDataURL('image/png');
+        }
     }
 
     function downloadSnapshot(dataUrl) {
         var a = document.createElement('a');
         a.href = dataUrl;
-        a.download = `snapshot_${Date.now()}.png`;
+        var now = new Date();
+        var filename = `que-tah_${now.getFullYear()}${('0' + (now.getMonth() + 1)).slice(-2)}${('0' + now.getDate()).slice(-2)}_` +
+                        `${('0' + now.getHours()).slice(-2)}${('0' + now.getMinutes()).slice(-2)}${('0' + now.getSeconds()).slice(-2)}_` +
+                        `${snapshotCounter}.png`;
+        a.download = filename;
+        snapshotCounter++;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+    }
+
+    function resetCamera() {
+        var image = document.querySelector('#snap');
+        image.setAttribute('src', "");
+        image.classList.remove('visible');
     }
 </script>
 </html>
