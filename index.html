@@ -64,7 +64,7 @@
     <a-scene
         vr-mode-ui="enabled: false;"
         loading-screen="enabled: false;"
-        arjs="trackingMethod: mono; sourceType: webcam; debugUIEnabled: false;"
+        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
         embedded
         gesture-detector
         id="scene"
@@ -80,14 +80,14 @@
         >
             <a-image
                 src="assets/asset.png"
-                scale="1 1 1"  <!-- スケールを適切に調整 -->
+                scale="3 3 1"
                 class="clickable"
                 rotation="-90 0 0"
-                position="0 0 0"
+                position="1 0 0"
                 gesture-handler
             ></a-image>
         </a-marker>
-        <a-entity camera="fov: 80; position: 0 0 2;"></a-entity>  <!-- FOVを80に設定して視野角を調整 -->
+        <a-entity camera></a-entity>
     </a-scene>
 
     <div class="ui">
