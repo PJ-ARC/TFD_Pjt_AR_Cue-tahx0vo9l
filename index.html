@@ -106,15 +106,7 @@
         setTimeout(() => {
             var canvas = scene.components.screenshot.getCanvas("perspective");
             if (canvas) {
-                // 高解像度化処理
-                var scaleFactor = 2; // 2倍解像度（必要なら 3 や 4 に変更）
-                var highResCanvas = document.createElement("canvas");
-                highResCanvas.width = canvas.width * scaleFactor;
-                highResCanvas.height = canvas.height * scaleFactor;
-                var ctx = highResCanvas.getContext("2d");
-                ctx.drawImage(canvas, 0, 0, highResCanvas.width, highResCanvas.height);
-                
-                var dataUrl = highResCanvas.toDataURL("image/png", 1.0);
+                var dataUrl = canvas.toDataURL("image/png");
                 downloadSnapshot(dataUrl);
             }
         }, 100);
