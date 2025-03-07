@@ -86,8 +86,8 @@
             cursor="fuse: false; rayOrigin: mouse;"
         >
             <a-image
+                id="asset-image"
                 src="assets/asset.png"
-                scale="3 3 1"
                 class="clickable"
                 rotation="-90 0 0"
                 position="1 0 0"
@@ -170,6 +170,18 @@
             image.setAttribute('src', "");  // スナップショットをクリア
             image.classList.remove('visible');  // スナップショットを非表示
         }
+
+        // 画像の縦横比を取得してscaleを調整
+        window.addEventListener('load', function() {
+            var assetImage = document.querySelector('#asset-image');
+            var img = new Image();
+            img.src = assetImage.getAttribute('src');
+
+            img.onload = function() {
+                var aspectRatio = img.width / img.height;
+                assetImage.setAttribute('scale', `${3 * aspectRatio} 3 1`);
+            }
+        });
     </script>
 </body>
 </html>
