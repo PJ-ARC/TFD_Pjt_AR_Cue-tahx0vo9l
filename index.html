@@ -1,62 +1,99 @@
 <!doctype html>
 <html>
-<head>
+<head>    
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; }
         .ui {
             position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
             z-index: 100;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
         }
-        .ui button {
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            background: #fff;
-            cursor: pointer;
+        .ui a {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            position: relative;
+        }
+        .ui a img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
         }
     </style>
 </head>
-<body>
-    <a-scene embedded arjs>
-        <a-marker preset="custom" url="assets/marker.patt">
-            <a-image src="assets/asset.png" scale="3 3 1" rotation="-90 0 0" gesture-handler></a-image>
+
+<body style="margin: 0; overflow: hidden;">
+    <a-scene
+        vr-mode-ui="enabled: false;"
+        loading-screen="enabled: false;"
+        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+        id="scene"
+        embedded
+        gesture-detector
+    >
+        <a-marker
+            type="pattern"
+            preset="custom"
+            url="assets/marker.patt"
+            raycaster="objects: .clickable"
+            emitevents="true"
+            cursor="fuse: false; rayOrigin: mouse;"
+        >
+            <a-image
+                src="assets/asset.png"
+                scale="3 3 1"
+                class="clickable"
+                rotation="-90 0 0"
+                position="1 0 0"
+                gesture-handler
+            ></a-image>
         </a-marker>
         <a-entity camera></a-entity>
     </a-scene>
-    
     <div class="ui">
-        <button id="take-photo">Take Photo</button>
+        <a href="#" id="take-photo" title="Take Photo"><img src="assets/camera.png" alt="Take Photo"></a>
     </div>
-    
-    <script>
-        document.querySelector('#take-photo').addEventListener('click', function() {
-            var video = document.querySelector('video');
-            if (!video) return;
-            
-            var canvas = document.createElement('canvas');
-            var ctx = canvas.getContext('2d');
-            var width = video.videoWidth;
-            var height = video.videoHeight;
-            
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(video, 0, 0, width, height);
-            
-            var link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
-            link.download = `snapshot_${Date.now()}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
-    </script>
 </body>
+
+<script>
+    document.querySelector('#take-photo').addEventListener("click", function (e) {
+        e.preventDefault();
+        var video = document.querySelector('video');
+        var snap = takeSnapshot(video);
+        downloadSnapshot(snap);
+    });
+
+    function takeSnapshot(video) {
+        var canvas = document.createElement("canvas");
+        var ctx = canvas.getContext("2d");
+        var width = video.videoWidth;
+        var height = video.videoHeight;
+        var aspectRatio = width / height;
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(video, 0, 0, width, height);
+        return canvas.toDataURL('image/png');
+    }
+
+    function downloadSnapshot(dataUrl) {
+        var a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = `snapshot_${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+</script>
 </html>
