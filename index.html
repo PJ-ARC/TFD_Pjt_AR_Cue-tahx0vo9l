@@ -102,7 +102,7 @@
         take_photo_btn.addEventListener("click", function (e) {
             e.preventDefault();
 
-            // カメラから画像を取得
+            // アウトカメラから画像を取得
             captureCameraImage().then(function(imageDataUrl) {
                 // 自動保存処理
                 downloadSnapshot(imageDataUrl);
@@ -112,38 +112,40 @@
             });
         });
 
-        // カメラから画像を取得
+        // アウトカメラから画像を取得
         function captureCameraImage() {
             return new Promise(function(resolve, reject) {
-                // カメラストリームを取得
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(function(stream) {
-                        var video = document.createElement('video');
-                        video.srcObject = stream;
-                        video.play();
+                // アウトカメラ（背面カメラ）を選択
+                navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" }  // 背面カメラを指定
+                })
+                .then(function(stream) {
+                    var video = document.createElement('video');
+                    video.srcObject = stream;
+                    video.play();
 
-                        // カメラが準備できたら画像を取得
-                        video.onloadeddata = function() {
-                            var canvas = document.createElement('canvas');
-                            var context = canvas.getContext('2d');
+                    // カメラが準備できたら画像を取得
+                    video.onloadeddata = function() {
+                        var canvas = document.createElement('canvas');
+                        var context = canvas.getContext('2d');
 
-                            // 動画のサイズに合わせてキャンバスを設定
-                            canvas.width = video.videoWidth;
-                            canvas.height = video.videoHeight;
+                        // 動画のサイズに合わせてキャンバスを設定
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
 
-                            // キャンバスにカメラの映像を描画
-                            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        // キャンバスにカメラの映像を描画
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                            // ストリームを停止してクリーンアップ
-                            stream.getTracks().forEach(track => track.stop());
+                        // ストリームを停止してクリーンアップ
+                        stream.getTracks().forEach(track => track.stop());
 
-                            // 画像をBase64形式で返す
-                            resolve(canvas.toDataURL('image/png'));
-                        };
-                    })
-                    .catch(function(error) {
-                        reject(error);
-                    });
+                        // 画像をBase64形式で返す
+                        resolve(canvas.toDataURL('image/png'));
+                    };
+                })
+                .catch(function(error) {
+                    reject(error);
+                });
             });
         }
 
