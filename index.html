@@ -63,6 +63,7 @@
         id="scene"
         embedded
         gesture-detector
+        screenshot="auto: false"
     >
         <a-marker
             id="animated-marker"
@@ -92,25 +93,25 @@
 
 <script>
     var take_photo_btn = document.querySelector('#take-photo');
-    var snapshotCounter = 1;  // 数字カウンター
+    var snapshotCounter = 1;
 
     take_photo_btn.addEventListener("click", function (e) {
         e.preventDefault();
-        var video = document.querySelector('video');
-        var snap = takeSnapshot(video);
-        downloadSnapshot(snap);
-        resetCamera();
+        takeSceneSnapshot();
     });
 
-    function takeSnapshot(video) {
-        var canvas = document.createElement("canvas");
-        var context = canvas.getContext("2d");
-        var width = video.videoWidth;
-        var height = video.videoHeight;
-        canvas.width = width;
-        canvas.height = height;
-        context.drawImage(video, 0, 0, width, height);
-        return canvas.toDataURL('image/png');
+    function takeSceneSnapshot() {
+        var scene = document.querySelector("a-scene");
+        var renderer = scene.renderer;
+        renderer.preserveDrawingBuffer = true; // WebGLのバッファを保持
+        
+        setTimeout(() => {
+            var canvas = renderer.domElement;
+            if (canvas) {
+                var dataUrl = canvas.toDataURL("image/png");
+                downloadSnapshot(dataUrl);
+            }
+        }, 500); // 遅延を追加し、描画が確実に完了してから取得
     }
 
     function downloadSnapshot(dataUrl) {
@@ -123,12 +124,6 @@
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-    }
-
-    function resetCamera() {
-        var image = document.querySelector('#snap');
-        image.setAttribute('src', "");
-        image.classList.remove('visible');
     }
 </script>
 </html>
