@@ -116,7 +116,7 @@
         if (width && height) {
             resizedCanvas.width = width;
             resizedCanvas.height = height;
-            resizedContext.drawImage(aScene, 0, 0, width, height);
+            resizedContext.drawImage(video, 0, 0, width, height);
             return resizedCanvas.toDataURL('image/png');
         }
     }
@@ -138,12 +138,5 @@
         image.setAttribute('src', "");
         image.classList.remove('visible');
     }
-
-    // 不要なテキストを非表示
-    document.addEventListener("DOMContentLoaded", function() {
-        var style = document.createElement('style');
-        style.innerHTML = '[data-aframe-inspector] { display: none !important; }';
-        document.head.appendChild(style);
-    });
 </script>
 </html>
