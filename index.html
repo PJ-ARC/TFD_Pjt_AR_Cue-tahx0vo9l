@@ -68,12 +68,12 @@
         id="scene"
         embedded
         gesture-detector
-        screenshot
     >
         <a-marker
             id="animated-marker"
             type="pattern"
-            preset="hiro"
+            preset="custom"
+            url="assets/marker.patt"
             raycaster="objects: .clickable"
             emitevents="true"
             cursor="fuse: false; rayOrigin: mouse;"
@@ -105,9 +105,7 @@
             video.setAttribute('playsinline', ''); // iOS用
         }
         var snap = takeSnapshot(video);
-        if (snap) {
-            downloadSnapshot(snap);
-        }
+        downloadSnapshot(snap);
         resetCamera();
     });
 
@@ -117,18 +115,14 @@
         var width = video.videoWidth;
         var height = video.videoHeight;
         var aspectRatio = width / height;
-        var aScene = document.querySelector("a-scene");
-        
-        if (aScene && aScene.components.screenshot) {
-            var sceneCanvas = aScene.components.screenshot.getCanvas("perspective");
-            if (sceneCanvas) {
-                resizedCanvas.width = width;
-                resizedCanvas.height = height;
-                resizedContext.drawImage(sceneCanvas, 0, 0, width, height);
-                return resizedCanvas.toDataURL('image/png');
-            }
+        var aScene = document.querySelector("a-scene").components.screenshot.getCanvas("perspective");
+
+        if (width && height) {
+            resizedCanvas.width = width;
+            resizedCanvas.height = height;
+            resizedContext.drawImage(aScene, 0, 0, width, height);
+            return resizedCanvas.toDataURL('image/png');
         }
-        return null;
     }
 
     function downloadSnapshot(dataUrl) {
