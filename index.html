@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
-<head>    
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
@@ -9,6 +10,13 @@
         body {
             margin: 0;
             overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+        a-scene {
+            width: 100%;
+            height: 100%;
+            display: block;
         }
         .ui {
             position: absolute;
@@ -65,7 +73,6 @@
         vr-mode-ui="enabled: false;"
         loading-screen="enabled: false;"
         arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
-        embedded
         gesture-detector
         id="scene"
     >
@@ -79,8 +86,8 @@
             cursor="fuse: false; rayOrigin: mouse;"
         >
             <a-image
+                id="asset-image"
                 src="assets/asset.png"
-                scale="3 3 1"
                 class="clickable"
                 rotation="-90 0 0"
                 position="1 0 0"
@@ -115,28 +122,22 @@
         function takeSnapshot(video) {
             var resizedCanvas = document.createElement("canvas");
             var resizedContext = resizedCanvas.getContext("2d");
-            var width = video.videoWidth;
-            var height = video.videoHeight;
+
+            // a-sceneのサイズを取得
+            var sceneWidth = window.innerWidth;
+            var sceneHeight = window.innerHeight;
+
+            resizedCanvas.width = sceneWidth;
+            resizedCanvas.height = sceneHeight;
+
+            // videoの内容をcanvasに描画
+            resizedContext.drawImage(video, 0, 0, sceneWidth, sceneHeight);
+
+            // ARシーンを描画
             var aScene = document.querySelector("a-scene").components.screenshot.getCanvas("perspective");
+            resizedContext.drawImage(aScene, 0, 0, sceneWidth, sceneHeight);
 
-            if (width && height) {
-                resizedCanvas.width = width;
-                resizedCanvas.height = height;
-                resizedContext.drawImage(video, 0, 0, width, height);
-
-                if (width > height) {
-                    // 横長（PC)
-                    resizedContext.drawImage(aScene, 0, 0, width, height);
-                } else {
-                    // 縦長（スマホ）
-                    var scale = height / width;
-                    var scaledWidth = height * scale;
-                    var marginLeft = (width - scaledWidth) / 2;
-                    resizedContext.drawImage(aScene, marginLeft, 0, scaledWidth, height);
-                }
-
-                return resizedCanvas.toDataURL('image/png');
-            }
+            return resizedCanvas.toDataURL('image/png');
         }
 
         // スナップショットを自動的にダウンロード
@@ -169,6 +170,18 @@
             image.setAttribute('src', "");  // スナップショットをクリア
             image.classList.remove('visible');  // スナップショットを非表示
         }
+
+        // 画像の縦横比を取得してscaleを調整
+        window.addEventListener('load', function() {
+            var assetImage = document.querySelector('#asset-image');
+            var img = new Image();
+            img.src = assetImage.getAttribute('src');
+
+            img.onload = function() {
+                var aspectRatio = img.width / img.height;
+                assetImage.setAttribute('scale', `${3 * aspectRatio} 3 1`);
+            }
+        });
     </script>
 </body>
 </html>
